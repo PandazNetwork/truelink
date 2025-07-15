@@ -11,8 +11,10 @@ from .base import BaseResolver
 class TeraboxResolver(BaseResolver):
     async def resolve(self, url: str) -> LinkResult | FolderResult:
         if "/file/" in url and ("terabox.com" in url or "teraboxapp.com" in url):
-            filename, size = await self._fetch_file_details(url)
-            return LinkResult(url=url, filename=filename, size=size)
+            filename, size, mime_type = await self._fetch_file_details(url)
+            return LinkResult(
+                url=url, filename=filename, mime_type=mime_type, size=size
+            )
 
         api_url = f"https://wdzone-terabox-api.vercel.app/api?url={quote(url)}"
 
@@ -58,13 +60,18 @@ class TeraboxResolver(BaseResolver):
                         "Terabox API error: Missing download link for single file.",
                     )
 
-                header_filename, header_size = await self._fetch_file_details(
+                (
+                    header_filename,
+                    header_size,
+                    mime_type,
+                ) = await self._fetch_file_details(
                     direct_link,
                 )
 
                 return LinkResult(
                     url=direct_link,
                     filename=header_filename,
+                    mime_type=mime_type,
                     size=header_size,
                 )
 
@@ -74,7 +81,7 @@ class TeraboxResolver(BaseResolver):
 
             for item_data in extracted_info:
                 item_link = item_data.get("🔽 Direct Download Link")
-                item_filename, item_size = await self._fetch_file_details(
+                item_filename, item_size, mime_type = await self._fetch_file_details(
                     item_link,
                 )
                 if not item_link:
@@ -82,8 +89,9 @@ class TeraboxResolver(BaseResolver):
 
                 folder_contents.append(
                     FileItem(
-                        filename=item_filename,
                         url=item_link,
+                        filename=item_filename,
+                        mime_type=mime_type,
                         size=item_size,
                         path="",
                     ),

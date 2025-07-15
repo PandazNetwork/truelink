@@ -8,7 +8,6 @@ from .fichier import FichierResolver
 from .filepress import FilePressResolver
 from .fuckingfast import FuckingFastResolver
 from .gofile import GoFileResolver
-from .hxfile import HxFileResolver
 from .krakenfiles import KrakenFilesResolver
 from .linkbox import LinkBoxResolver
 from .lulacloud import LulaCloudResolver
@@ -17,7 +16,7 @@ from .mediafire import MediaFireResolver
 from .onedrive import OneDriveResolver
 from .pcloud import PCloudResolver
 from .pixeldrain import PixelDrainResolver
-from .qiwi import QiwiResolver
+from .ranoz import RanozResolver
 from .streamtape import StreamtapeResolver
 from .swisstransfer import SwissTransferResolver
 from .terabox import TeraboxResolver
@@ -36,7 +35,6 @@ __all__ = [
     "FilePressResolver",
     "FuckingFastResolver",
     "GoFileResolver",
-    "HxFileResolver",
     "KrakenFilesResolver",
     "LinkBoxResolver",
     "LulaCloudResolver",
@@ -45,7 +43,7 @@ __all__ = [
     "OneDriveResolver",
     "PCloudResolver",
     "PixelDrainResolver",
-    "QiwiResolver",
+    "RanozResolver",
     "StreamtapeResolver",
     "SwissTransferResolver",
     "TeraboxResolver",

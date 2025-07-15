@@ -22,7 +22,7 @@ class PrettyPrintDataClass:
     formatted as a JSON-like string, omitting None and empty list values.
     """
 
-    def __str__(self):
+    def __str__(self) -> str:
         raw_dict = asdict(self)
         processed_dict = {k: custom_asdict_factory(v) for k, v in raw_dict.items()}
         filtered_dict = {
@@ -39,6 +39,7 @@ class LinkResult(PrettyPrintDataClass):
 
     url: str
     filename: str | None = None
+    mime_type: str | None = None
     size: int | None = None
     headers: dict | None = None
 
@@ -47,8 +48,9 @@ class LinkResult(PrettyPrintDataClass):
 class FileItem(PrettyPrintDataClass):
     """Individual file in a folder"""
 
-    filename: str
     url: str
+    filename: str
+    mime_type: str | None = None
     size: int | None = None
     path: str = ""
 

@@ -1,10 +1,15 @@
 # ruff: noqa: F405, F403
 from __future__ import annotations
 
+import asyncio
 from typing import TYPE_CHECKING
 from urllib.parse import urlparse
 
-from .exceptions import InvalidURLException, UnsupportedProviderException
+from .exceptions import (
+    ExtractionFailedException,
+    InvalidURLException,
+    UnsupportedProviderException,
+)
 from .resolvers import *
 
 if TYPE_CHECKING:
@@ -14,7 +19,15 @@ if TYPE_CHECKING:
 class TrueLinkResolver:
     """Main resolver class for extracting direct download links"""
 
-    def __init__(self):
+    def __init__(self, timeout: int = 30, max_retries: int = 3) -> None:
+        """Initialize TrueLinkResolver
+
+        Args:
+            timeout (int): Request timeout in seconds (default: 30)
+            max_retries (int): Maximum number of retries for failed attempts (default: 3)
+        """
+        self.timeout = timeout
+        self.max_retries = max_retries
         self._resolvers: dict[str, type] = {
             # Buzzheavier
             "buzzheavier.com": BuzzHeavierResolver,
@@ -34,8 +47,6 @@ class TrueLinkResolver:
             "mediafile.cc": MediaFileResolver,
             # MediaFire
             "mediafire.com": MediaFireResolver,
-            # hxfile
-            "hxfile.co": HxFileResolver,
             # OneDrive
             "1drv.ms": OneDriveResolver,
             "onedrive.live.com": OneDriveResolver,
@@ -63,8 +74,8 @@ class TrueLinkResolver:
             # pcloud
             "u.pcloud.link": PCloudResolver,
             "pcloud.com": PCloudResolver,
-            # qiwi
-            "qiwi.gg": QiwiResolver,
+            # ranoz
+            "ranoz.gg": RanozResolver,
             # Swisstrensfer
             "swisstransfer.com": SwissTransferResolver,
             # DoodStream
@@ -131,7 +142,10 @@ class TrueLinkResolver:
 
         for pattern, resolver_class in self._resolvers.items():
             if pattern in domain:
-                return resolver_class()
+                resolver = resolver_class()
+
+                resolver.timeout = self.timeout
+                return resolver
 
         raise UnsupportedProviderException(f"No resolver found for domain: {domain}")
 
@@ -148,11 +162,25 @@ class TrueLinkResolver:
         Raises:
             InvalidURLException: If URL is invalid
             UnsupportedProviderException: If provider is not supported
-            ExtractionFailedException: If extraction fails
+            ExtractionFailedException: If extraction fails after all retries
         """
         resolver_instance = self._get_resolver(url)
-        async with resolver_instance:
-            return await resolver_instance.resolve(url)
+
+        for attempt in range(self.max_retries):
+            try:
+                async with resolver_instance:
+                    return await resolver_instance.resolve(url)
+            except ExtractionFailedException:
+                if attempt == self.max_retries - 1:
+                    raise
+                await asyncio.sleep(1 * (attempt + 1))
+            except Exception as e:
+                if attempt == self.max_retries - 1:
+                    raise ExtractionFailedException(
+                        f"Failed to resolve URL after {self.max_retries} attempts: {e!s}"
+                    ) from e
+                await asyncio.sleep(1 * (attempt + 1))
+        return None
 
     def is_supported(self, url: str) -> bool:
         """

@@ -40,11 +40,16 @@ class BuzzHeavierResolver(BaseResolver):
                     "hx-request": "true",
                     "priority": "u=1, i",
                 }
-                filename, size = await self._fetch_file_details(
+                filename, size, mime_type = await self._fetch_file_details(
                     download_url,
                     headers=buzz_headers,
                 )
-                return LinkResult(url=download_url, filename=filename, size=size)
+                return LinkResult(
+                    url=download_url,
+                    filename=filename,
+                    mime_type=mime_type,
+                    size=size,
+                )
 
             folder_elements = tree.xpath("//tbody[@id='tbody']/tr")
             if folder_elements:
@@ -84,9 +89,7 @@ class BuzzHeavierResolver(BaseResolver):
 
         for element in folder_elements:
             try:
-                filename_elem = element.xpath(".//a")[0]
-                scraped_filename = filename_elem.text.strip()
-                file_id = filename_elem.get("href", "").strip()
+                file_id = element.xpath(".//a")[0].get("href", "").strip()
 
                 download_url = await self._get_download_url(
                     f"https://buzzheavier.com{file_id}",
@@ -101,17 +104,20 @@ class BuzzHeavierResolver(BaseResolver):
                         "hx-request": "true",
                         "priority": "u=1, i",
                     }
-                    actual_filename, item_size = await self._fetch_file_details(
+                    (
+                        actual_filename,
+                        item_size,
+                        mime_type,
+                    ) = await self._fetch_file_details(
                         download_url,
                         headers=buzz_headers,
                     )
 
                     contents.append(
                         FileItem(
-                            filename=actual_filename
-                            if actual_filename
-                            else scraped_filename,
                             url=download_url,
+                            filename=actual_filename,
+                            mime_type=mime_type,
                             size=item_size,
                             path="",
                         ),
