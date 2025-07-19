@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import ClassVar
+
 from truelink.exceptions import ExtractionFailedException
 from truelink.types import FolderResult, LinkResult
 
@@ -8,6 +10,8 @@ from .base import BaseResolver
 
 class LulaCloudResolver(BaseResolver):
     """Resolver for LulaCloud URLs"""
+
+    DOMAINS: ClassVar[list[str]] = ["lulacloud.com"]
 
     async def resolve(self, url: str) -> LinkResult | FolderResult:
         """Resolve LulaCloud URL"""

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from typing import ClassVar
 from urllib.parse import quote
 
 from truelink.exceptions import ExtractionFailedException
@@ -9,6 +10,26 @@ from .base import BaseResolver
 
 
 class TeraboxResolver(BaseResolver):
+    DOMAINS: ClassVar[list[str]] = [
+        "terabox.com",
+        "nephobox.com",
+        "4funbox.com",
+        "mirrobox.com",
+        "momerybox.com",
+        "teraboxapp.com",
+        "1024tera.com",
+        "terabox.app",
+        "gibibox.com",
+        "goaibox.com",
+        "terasharelink.com",
+        "teraboxlink.com",
+        "freeterabox.com",
+        "1024terabox.com",
+        "teraboxshare.com",
+        "terafileshare.com",
+        "terabox.club",
+    ]
+
     async def resolve(self, url: str) -> LinkResult | FolderResult:
         if "/file/" in url and ("terabox.com" in url or "teraboxapp.com" in url):
             filename, size, mime_type = await self._fetch_file_details(url)

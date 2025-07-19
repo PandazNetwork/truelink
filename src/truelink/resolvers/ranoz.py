@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from typing import ClassVar
 from urllib.parse import urlparse
 
 from truelink import mimetypes
@@ -11,6 +12,8 @@ from .base import BaseResolver
 
 class RanozResolver(BaseResolver):
     """Resolver for Ranoz.gg URLs"""
+
+    DOMAINS: ClassVar[list[str]] = ["ranoz.gg"]
 
     async def resolve(self, url: str) -> LinkResult | FolderResult:
         """Resolve Ranoz.gg URL"""

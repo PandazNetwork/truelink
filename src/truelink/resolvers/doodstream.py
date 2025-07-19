@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import re
+from typing import ClassVar
 from urllib.parse import urlparse
 
 from lxml.html import fromstring
@@ -15,6 +16,33 @@ from .base import BaseResolver
 # todo
 class DoodStreamResolver(BaseResolver):
     """Resolver for DoodStream URLs (dood.watch, dood.to, etc.)"""
+
+    DOMAINS: ClassVar[list[str]] = [
+        "dood.watch",
+        "doodstream.com",
+        "dood.to",
+        "dood.so",
+        "dood.cx",
+        "dood.la",
+        "dood.ws",
+        "dood.sh",
+        "doodstream.co",
+        "dood.pm",
+        "dood.wf",
+        "dood.re",
+        "dood.video",
+        "dooood.com",
+        "dood.yt",
+        "doods.yt",
+        "dood.stream",
+        "doods.pro",
+        "ds2play.com",
+        "d0o0d.com",
+        "ds2video.com",
+        "do0od.com",
+        "d000d.com",
+        "vide0.net",
+    ]
 
     async def resolve(self, url: str) -> LinkResult | FolderResult:
         """Resolve DoodStream URL"""

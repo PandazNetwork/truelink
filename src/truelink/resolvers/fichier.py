@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+from typing import ClassVar
 
 from lxml.html import fromstring
 
@@ -16,6 +17,8 @@ PASSWORD_ERROR_MESSAGE_FICHIER = (
 
 class FichierResolver(BaseResolver):
     """Resolver for 1Fichier.com URLs"""
+
+    DOMAINS: ClassVar[list[str]] = ["1fichier.com"]
 
     async def resolve(self, url: str) -> LinkResult | FolderResult:
         """Resolve 1Fichier.com URL"""

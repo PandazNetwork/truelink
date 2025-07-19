@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+from typing import ClassVar
 from urllib.parse import urlparse
 
 from truelink import mimetypes
@@ -13,6 +14,13 @@ from .base import BaseResolver
 class LinkBoxResolver(BaseResolver):
     """Resolver for LinkBox.to URLs"""
 
+    DOMAINS: ClassVar[list[str]] = [
+        "linkbox.to",
+        "lbx.to",
+        "linkbox.cloud",
+        "teltobx.net",
+        "telbx.net",
+    ]
     BASE_API = "https://www.linkbox.to/api/file"
 
     def __init__(self) -> None:
@@ -133,7 +141,7 @@ class LinkBoxResolver(BaseResolver):
             raise InvalidURLException("LinkBox: Missing shareToken in URL.")
         return token
 
-    def _extract_size(self, size_val) -> int | None:
+    def _extract_size(self, size_val: str | float | None) -> int | None:
         if isinstance(size_val, str) and size_val.isdigit():
             return int(size_val)
         if isinstance(size_val, int | float):

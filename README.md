@@ -10,6 +10,7 @@ A Python library for resolving media URLs to direct download links from various 
 - **Asynchronous**: Built with `async/await` for efficient handling of multiple requests.
 - **Easy to use**: Simple API with intuitive method names.
 - **Extensible**: Support for multiple file hosting platforms.
+- **Caching**: Built-in caching for faster resolution of repeated requests.
 - **Error handling**: Robust error handling for various edge cases.
 - **URL validation**: Built-in URL validation before processing.
 - **Type-hinted**: Fully type-hinted codebase for better readability and maintainability.
@@ -27,16 +28,17 @@ import asyncio
 from truelink import TrueLinkResolver
 
 async def main():
+    # Check if a URL is supported without creating an instance
+    if TrueLinkResolver.is_supported("https://buzzheavier.com/rnk4ut0lci9y"):
+        print("BuzzHeavier is supported!")
+
     resolver = TrueLinkResolver()
     url = "https://buzzheavier.com/rnk4ut0lci9y"
 
     try:
-        if resolver.is_supported(url):
-            result = await resolver.resolve(url)
-            print(type(result))
-            print(result)
-        else:
-            print(f"URL not supported: {url}")
+        result = await resolver.resolve(url)
+        print(type(result))
+        print(result)
     except Exception as e:
         print(f"Error processing {url}: {e}")
 

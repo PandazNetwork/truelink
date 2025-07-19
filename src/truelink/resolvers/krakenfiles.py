@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from typing import ClassVar
 from urllib.parse import urljoin
 
 from lxml.html import fromstring
@@ -13,6 +14,8 @@ from .base import BaseResolver
 # todo
 class KrakenFilesResolver(BaseResolver):
     """Resolver for KrakenFiles.com URLs"""
+
+    DOMAINS: ClassVar[list[str]] = ["krakenfiles.com"]
 
     async def resolve(self, url: str) -> LinkResult | FolderResult:
         """Resolve KrakenFiles.com URL"""

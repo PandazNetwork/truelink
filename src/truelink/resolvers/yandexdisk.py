@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+from typing import ClassVar
 
 from truelink.exceptions import ExtractionFailedException, InvalidURLException
 from truelink.types import FolderResult, LinkResult
@@ -14,6 +15,8 @@ YANDEX_DISK_URL_PATTERN = re.compile(
 
 class YandexDiskResolver(BaseResolver):
     """Resolver for Yandex.Disk URLs"""
+
+    DOMAINS: ClassVar[list[str]] = ["yadi.sk", "disk.yandex."]
 
     async def resolve(self, url: str) -> LinkResult | FolderResult:
         """Resolve Yandex.Disk URL"""

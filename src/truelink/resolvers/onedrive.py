@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from typing import ClassVar
 from urllib.parse import parse_qs, urlparse
 from uuid import uuid4
 
@@ -12,6 +13,8 @@ from .base import BaseResolver
 # todo
 class OneDriveResolver(BaseResolver):
     """Resolver for OneDrive (1drv.ms) URLs"""
+
+    DOMAINS: ClassVar[list[str]] = ["1drv.ms", "onedrive.live.com"]
 
     async def resolve(self, url: str) -> LinkResult | FolderResult:
         """Resolve OneDrive URL"""

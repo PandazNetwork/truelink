@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from typing import ClassVar
 from urllib.parse import urlparse
 
 from truelink.exceptions import ExtractionFailedException, InvalidURLException
@@ -11,6 +12,8 @@ from .base import BaseResolver
 # Todo
 class FilePressResolver(BaseResolver):
     """Resolver for FilePress URLs (via filebee.xyz)"""
+
+    DOMAINS: ClassVar[list[str]] = ["filepress"]
 
     async def resolve(self, url: str) -> LinkResult | FolderResult:
         """Resolve FilePress URL"""

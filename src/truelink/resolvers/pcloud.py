@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import re
+from typing import ClassVar
 from urllib.parse import unquote, urlparse
 
 from truelink.exceptions import ExtractionFailedException
@@ -13,6 +14,8 @@ from .base import BaseResolver
 # todo
 class PCloudResolver(BaseResolver):
     """Resolver for pCloud.link URLs"""
+
+    DOMAINS: ClassVar[list[str]] = ["u.pcloud.link", "pcloud.com"]
 
     async def resolve(self, url: str) -> LinkResult | FolderResult:
         """Resolve pCloud.link URL"""

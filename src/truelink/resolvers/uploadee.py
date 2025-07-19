@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import ClassVar
+
 from lxml.html import fromstring
 
 from truelink.exceptions import ExtractionFailedException
@@ -10,6 +12,8 @@ from .base import BaseResolver
 
 class UploadEeResolver(BaseResolver):
     """Resolver for Upload.ee URLs"""
+
+    DOMAINS: ClassVar[list[str]] = ["upload.ee"]
 
     async def resolve(self, url: str) -> LinkResult | FolderResult:
         """Resolve Upload.ee URL"""

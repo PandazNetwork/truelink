@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import re
+from typing import ClassVar
 
-from lxml.html import fromstring
+from lxml.html import HtmlElement, fromstring
 
 from truelink.exceptions import ExtractionFailedException
 from truelink.types import FileItem, FolderResult, LinkResult
@@ -12,6 +13,8 @@ from .base import BaseResolver
 
 class BuzzHeavierResolver(BaseResolver):
     """Resolver for BuzzHeavier URLs"""
+
+    DOMAINS: ClassVar[list[str]] = ["buzzheavier.com"]
 
     async def resolve(self, url: str) -> LinkResult | FolderResult:
         """Resolve BuzzHeavier URL"""
@@ -82,7 +85,9 @@ class BuzzHeavierResolver(BaseResolver):
                 return None
             return redirect_url
 
-    async def _process_folder(self, tree, folder_elements) -> FolderResult:
+    async def _process_folder(
+        self, tree: HtmlElement, folder_elements: list[HtmlElement]
+    ) -> FolderResult:
         """Process folder contents"""
         contents = []
         total_size = 0

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from typing import ClassVar
 from urllib.parse import urlparse
 
 from truelink.exceptions import ExtractionFailedException, InvalidURLException
@@ -11,6 +12,8 @@ from .base import BaseResolver
 # ToDo
 class WeTransferResolver(BaseResolver):
     """Resolver for WeTransfer.com URLs"""
+
+    DOMAINS: ClassVar[list[str]] = ["wetransfer.com", "we.tl"]
 
     async def resolve(self, url: str) -> LinkResult | FolderResult:
         """Resolve WeTransfer.com URL"""

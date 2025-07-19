@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+from typing import ClassVar
 
 from lxml.html import fromstring
 
@@ -13,6 +14,8 @@ from .base import BaseResolver
 # ToDo
 class UploadHavenResolver(BaseResolver):
     """Resolver for UploadHaven URLs"""
+
+    DOMAINS: ClassVar[list[str]] = ["uploadhaven.com"]
 
     async def resolve(self, url: str) -> LinkResult | FolderResult:
         """Resolve UploadHaven URL"""

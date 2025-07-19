@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+from typing import ClassVar
 from urllib.parse import urlparse
 
 from lxml.etree import HTML
@@ -13,6 +14,16 @@ from .base import BaseResolver
 
 class StreamtapeResolver(BaseResolver):
     """Resolver for Streamtape URLs"""
+
+    DOMAINS: ClassVar[list[str]] = [
+        "streamtape.com",
+        "streamtape.co",
+        "streamtape.cc",
+        "streamtape.to",
+        "streamtape.net",
+        "streamta.pe",
+        "streamtape.xyz",
+    ]
 
     async def resolve(self, url: str) -> LinkResult | FolderResult:
         """Resolve Streamtape URL"""

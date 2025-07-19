@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from typing import ClassVar
 from urllib.parse import urlparse
 
 from truelink.exceptions import ExtractionFailedException, InvalidURLException
@@ -10,6 +11,8 @@ from .base import BaseResolver
 
 class PixelDrainResolver(BaseResolver):
     """Resolver for PixelDrain URLs"""
+
+    DOMAINS: ClassVar[list[str]] = ["pixeldrain.com", "pixeldra.in"]
 
     async def resolve(self, url: str) -> LinkResult | FolderResult:
         """Resolve PixelDrain URL"""

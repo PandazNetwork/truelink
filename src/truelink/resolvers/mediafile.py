@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import re
+from typing import ClassVar
 
 from truelink.exceptions import ExtractionFailedException
 from truelink.types import FolderResult, LinkResult
@@ -11,6 +12,8 @@ from .base import BaseResolver
 
 class MediaFileResolver(BaseResolver):
     """Resolver for MediaFile.cc URLs"""
+
+    DOMAINS: ClassVar[list[str]] = ["mediafile.cc"]
 
     async def resolve(self, url: str) -> LinkResult | FolderResult:
         """Resolve MediaFile.cc URL"""

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+from typing import ClassVar
 
 from truelink.exceptions import ExtractionFailedException
 from truelink.types import FolderResult, LinkResult
@@ -10,6 +11,8 @@ from .base import BaseResolver
 
 class FuckingFastResolver(BaseResolver):
     """Resolver for FuckingFast URLs"""
+
+    DOMAINS: ClassVar[list[str]] = ["fuckingfast.co"]
 
     async def resolve(self, url: str) -> LinkResult | FolderResult:
         """Resolve FuckingFast URL"""
