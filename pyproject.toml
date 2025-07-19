@@ -29,18 +29,19 @@ keywords = ["download", "link", "extractor", "direct-link", "url"]
 dependencies = [
     "aiohttp>=3.8.0",
     "lxml>=4.9.0",
-    "validators>=0.20.0",
-    "httpx>=0.20.0", # Added httpx
-    "cloudscraper>=1.2.71", # Added cloudscraper
+    "cloudscraper>=1.2.71",
 ]
 
 [project.optional-dependencies]
-dev = [
-    "pytest>=7.0.0",
-    "pytest-asyncio>=0.21.0",
-    "pytest-cov>=4.0.0",
-    "mypy>=1.0.0",
-    "pre-commit>=3.0.0",
+docs = [
+    "mkdocs>=1.4.0",
+    "mkdocs-material>=9.0.0",
+    "mkdocs-macros-plugin",
+    "mkdocstrings[python]>=0.20.0",
+    "mkdocs-gen-files>=0.4.0",
+    "mkdocs-literate-nav>=0.6.0",
+    "mkdocs-section-index>=0.3.0",
+    "mkdocs-autorefs>=0.4.0",
 ]
 
 [project.urls]
