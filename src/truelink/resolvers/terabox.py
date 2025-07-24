@@ -1,3 +1,5 @@
+"""Resolver for Terabox URLs."""
+
 from __future__ import annotations
 
 from typing import ClassVar
@@ -10,6 +12,8 @@ from .base import BaseResolver
 
 
 class TeraboxResolver(BaseResolver):
+    """Resolver for Terabox URLs."""
+
     DOMAINS: ClassVar[list[str]] = [
         "terabox.com",
         "nephobox.com",
@@ -31,6 +35,7 @@ class TeraboxResolver(BaseResolver):
     ]
 
     async def resolve(self, url: str) -> LinkResult | FolderResult:
+        """Resolve Terabox URL."""
         if "/file/" in url and ("terabox.com" in url or "teraboxapp.com" in url):
             filename, size, mime_type = await self._fetch_file_details(url)
             return LinkResult(
@@ -43,16 +48,17 @@ class TeraboxResolver(BaseResolver):
             async with await self._get(api_url) as response:
                 if response.status != 200:
                     error_text = await response.text()
-                    raise ExtractionFailedException(
+                    self._raise_extraction_failed(
                         f"Terabox API error ({response.status}): {error_text[:200]}",
                     )
                 try:
                     json_response = await response.json()
-                except Exception as json_error:
+                except ValueError as json_error:
                     text_snippet = await response.text()
+                    msg = f"Terabox API error: Failed to parse JSON response. {json_error}. Response: {text_snippet[:200]}"
                     raise ExtractionFailedException(
-                        f"Terabox API error: Failed to parse JSON response. {json_error}. Response: {text_snippet[:200]}",
-                    )
+                        msg,
+                    ) from json_error
 
             if "✅ Status" not in json_response or not json_response.get(
                 "📜 Extracted Info",
@@ -63,12 +69,12 @@ class TeraboxResolver(BaseResolver):
                 )
                 if "error" in json_response:
                     error_message = json_response["error"]
-                raise ExtractionFailedException(f"Terabox: {error_message}")
+                self._raise_extraction_failed(f"Terabox: {error_message}")
 
             extracted_info = json_response["📜 Extracted Info"]
 
             if not isinstance(extracted_info, list) or not extracted_info:
-                raise ExtractionFailedException(
+                self._raise_extraction_failed(
                     "Terabox API error: '📜 Extracted Info' is not a valid list or is empty.",
                 )
 
@@ -77,7 +83,7 @@ class TeraboxResolver(BaseResolver):
                 direct_link = file_data.get("🔽 Direct Download Link")
 
                 if not direct_link:
-                    raise ExtractionFailedException(
+                    self._raise_extraction_failed(
                         "Terabox API error: Missing download link for single file.",
                     )
 
@@ -120,7 +126,7 @@ class TeraboxResolver(BaseResolver):
                 total_size += item_size
 
             if not folder_contents:
-                raise ExtractionFailedException(
+                self._raise_extraction_failed(
                     "Terabox: No valid files found in folder data from API.",
                 )
 
@@ -130,9 +136,13 @@ class TeraboxResolver(BaseResolver):
                 total_size=total_size,
             )
 
-        except Exception as e:
+        except (ExtractionFailedException, ValueError) as e:
             if isinstance(e, ExtractionFailedException):
                 raise
+            msg = f"Failed to resolve Terabox URL '{url}': {e!s}"
             raise ExtractionFailedException(
-                f"Failed to resolve Terabox URL '{url}': {e!s}",
+                msg,
             ) from e
+
+    def _raise_extraction_failed(self, msg: str) -> None:
+        raise ExtractionFailedException(msg)

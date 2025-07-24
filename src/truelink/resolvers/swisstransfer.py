@@ -1,3 +1,5 @@
+"""Resolver for SwissTransfer.com URLs."""
+
 from __future__ import annotations
 
 import base64
@@ -11,7 +13,7 @@ from .base import BaseResolver
 
 
 class SwissTransferResolver(BaseResolver):
-    """Resolver for SwissTransfer.com URLs"""
+    """Resolver for SwissTransfer.com URLs."""
 
     DOMAINS: ClassVar[list[str]] = ["swisstransfer.com"]
 
@@ -20,7 +22,7 @@ class SwissTransferResolver(BaseResolver):
         transfer_id: str,
         password_b64: str | None,
     ) -> dict:
-        """Fetches metadata for a given transfer_id."""
+        """Fetch metadata for a given transfer_id."""
         api_url = f"https://www.swisstransfer.com/api/links/{transfer_id}"
         headers = {"User-Agent": self.USER_AGENT}
         if password_b64:
@@ -35,18 +37,20 @@ class SwissTransferResolver(BaseResolver):
                     json_err = await response.json(content_type=None)
                     if "message" in json_err:
                         err_text = json_err["message"]
-                except Exception:
+                except (ValueError, KeyError):
                     pass
+                msg = f"SwissTransfer API (metadata) error {response.status}: {err_text[:200]}"
                 raise ExtractionFailedException(
-                    f"SwissTransfer API (metadata) error {response.status}: {err_text[:200]}",
+                    msg,
                 )
             try:
                 return await response.json()
-            except Exception as e_json:
+            except ValueError as e_json:
                 err_txt = await response.text()
+                msg = f"SwissTransfer API (metadata) error: Failed to parse JSON. {e_json}. Response: {err_txt[:200]}"
                 raise ExtractionFailedException(
-                    f"SwissTransfer API (metadata) error: Failed to parse JSON. {e_json}. Response: {err_txt[:200]}",
-                )
+                    msg,
+                ) from e_json
 
     async def _generate_download_token(
         self,
@@ -54,7 +58,7 @@ class SwissTransferResolver(BaseResolver):
         container_uuid: str,
         file_uuid: str,
     ) -> str:
-        """Generates a download token for a specific file."""
+        """Generate a download token for a specific file."""
         api_url = "https://www.swisstransfer.com/api/generateDownloadToken"
         headers = {
             "User-Agent": self.USER_AGENT,
@@ -77,24 +81,25 @@ class SwissTransferResolver(BaseResolver):
                     json_err = await response.json(content_type=None)
                     if "message" in json_err:
                         err_text = json_err["message"]
-                except Exception:
+                except (ValueError, KeyError):
                     pass
+                msg = f"SwissTransfer API (token) error {response.status}: {err_text[:200]}"
                 raise ExtractionFailedException(
-                    f"SwissTransfer API (token) error {response.status}: {err_text[:200]}",
+                    msg,
                 )
             token_text = await response.text()
             return token_text.strip().replace('"', "")
 
     async def resolve(self, url: str) -> LinkResult | FolderResult:
-        """Resolve SwissTransfer.com URL"""
-
+        """Resolve SwissTransfer.com URL."""
         match = re.match(
             r"https://www\.swisstransfer\.com/d/([\w-]+)(?:::(\S+))?",
             url,
         )
         if not match:
+            msg = f"Invalid SwissTransfer URL format. Expected '/d/transfer-id[::password]'. Got: {url}"
             raise InvalidURLException(
-                f"Invalid SwissTransfer URL format. Expected '/d/transfer-id[::password]'. Got: {url}",
+                msg,
             )
 
         transfer_id, password_str = match.groups()
@@ -106,10 +111,11 @@ class SwissTransferResolver(BaseResolver):
                 password_b64 = base64.b64encode(password_str.encode("utf-8")).decode(
                     "utf-8",
                 )
-            except Exception as e_b64:
+            except (base64.binascii.Error, TypeError) as e_b64:
+                msg = f"Failed to base64 encode password: {e_b64}"
                 raise InvalidURLException(
-                    f"Failed to base64 encode password: {e_b64}",
-                )
+                    msg,
+                ) from e_b64
 
         metadata_response = await self._get_file_metadata(transfer_id, password_b64)
 
@@ -123,13 +129,15 @@ class SwissTransferResolver(BaseResolver):
                 or f"SwissTransfer_{transfer_id}"
             )
         except (KeyError, TypeError) as e_parse:
+            msg = f"SwissTransfer error: Could not parse required fields from metadata. Error: {e_parse}. Metadata: {str(metadata_response)[:300]}"
             raise ExtractionFailedException(
-                f"SwissTransfer error: Could not parse required fields from metadata. Error: {e_parse}. Metadata: {str(metadata_response)[:300]}",
-            )
+                msg,
+            ) from e_parse
 
         if not files_list:
+            msg = "SwissTransfer error: No files found in the transfer metadata."
             raise ExtractionFailedException(
-                "SwissTransfer error: No files found in the transfer metadata.",
+                msg,
             )
 
         if len(files_list) == 1:
@@ -139,8 +147,9 @@ class SwissTransferResolver(BaseResolver):
             file_size_bytes = file_info.get("fileSizeInBytes")
 
             if not file_uuid:
+                msg = "SwissTransfer error: File UUID missing for single file."
                 raise ExtractionFailedException(
-                    "SwissTransfer error: File UUID missing for single file.",
+                    msg,
                 )
 
             token = await self._generate_download_token(
@@ -149,8 +158,9 @@ class SwissTransferResolver(BaseResolver):
                 file_uuid,
             )
             if not token:
+                msg = "SwissTransfer error: Failed to generate download token for single file."
                 raise ExtractionFailedException(
-                    "SwissTransfer error: Failed to generate download token for single file.",
+                    msg,
                 )
 
             direct_download_url = f"https://{download_host}/api/download/{transfer_id}/{file_uuid}?token={token}"
@@ -196,8 +206,9 @@ class SwissTransferResolver(BaseResolver):
                 total_folder_size += file_size_bytes
 
         if not folder_contents:
+            msg = "SwissTransfer error: No valid files could be processed in the multi-file transfer."
             raise ExtractionFailedException(
-                "SwissTransfer error: No valid files could be processed in the multi-file transfer.",
+                msg,
             )
 
         return FolderResult(

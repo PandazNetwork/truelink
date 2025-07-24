@@ -1,3 +1,5 @@
+"""Resolver for pCloud.link URLs."""
+
 from __future__ import annotations
 
 import json
@@ -11,14 +13,13 @@ from truelink.types import FolderResult, LinkResult
 from .base import BaseResolver
 
 
-# todo
 class PCloudResolver(BaseResolver):
-    """Resolver for pCloud.link URLs"""
+    """Resolver for pCloud.link URLs."""
 
     DOMAINS: ClassVar[list[str]] = ["u.pcloud.link", "pcloud.com"]
 
     async def resolve(self, url: str) -> LinkResult | FolderResult:
-        """Resolve pCloud.link URL"""
+        """Resolve pCloud.link URL."""
         try:
             async with await self._get(url) as response:
                 response_text = await response.text()
@@ -100,7 +101,7 @@ class PCloudResolver(BaseResolver):
                         direct_link = cdn_links[0]
 
             if not direct_link:
-                raise ExtractionFailedException(
+                self._raise_extraction_failed(
                     "pCloud.link error: Direct download link not found in page source.",
                 )
 
@@ -124,14 +125,18 @@ class PCloudResolver(BaseResolver):
                             and not potential_filename.split(".")[0].isdigit()
                         ):
                             filename = potential_filename
-                except Exception:
+                except (json.JSONDecodeError, TypeError):
                     pass
 
             return LinkResult(url=direct_link, filename=filename, size=size)
 
-        except Exception as e:
+        except (ExtractionFailedException, json.JSONDecodeError) as e:
             if isinstance(e, ExtractionFailedException):
                 raise
+            msg = f"Failed to resolve pCloud.link URL '{url}': {e!s}"
             raise ExtractionFailedException(
-                f"Failed to resolve pCloud.link URL '{url}': {e!s}",
+                msg,
             ) from e
+
+    def _raise_extraction_failed(self, msg: str) -> None:
+        raise ExtractionFailedException(msg)

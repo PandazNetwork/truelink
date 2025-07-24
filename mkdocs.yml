@@ -39,7 +39,7 @@ theme:
   palette:
     scheme: slate
     primary: black
-    accent: black
+    accent: deep orange
 
   font:
     text: Roboto
@@ -139,5 +139,7 @@ nav:
   - Core API: core.md
   - Exceptions: exceptions.md
   - Types: types.md
-  - Contributing: contributing.md
+  - Contributing:
+      - Contributing Guide: contributing.md
+      - How to Add a New Resolver: adding-resolvers.md
   - Changelog: changelog.md

@@ -1,3 +1,5 @@
+"""Resolver for Upload.ee URLs."""
+
 from __future__ import annotations
 
 from typing import ClassVar
@@ -11,12 +13,12 @@ from .base import BaseResolver
 
 
 class UploadEeResolver(BaseResolver):
-    """Resolver for Upload.ee URLs"""
+    """Resolver for Upload.ee URLs."""
 
     DOMAINS: ClassVar[list[str]] = ["upload.ee"]
 
     async def resolve(self, url: str) -> LinkResult | FolderResult:
-        """Resolve Upload.ee URL"""
+        """Resolve Upload.ee URL."""
         try:
             async with await self._get(url) as response:
                 response_text = await response.text()
@@ -34,17 +36,17 @@ class UploadEeResolver(BaseResolver):
                         "//div[contains(@class, 'alert-danger')]/text() | //div[contains(@class, 'error')]/text()",
                     )
                     if error_messages:
-                        raise ExtractionFailedException(
+                        self._raise_extraction_failed(
                             f"Upload.ee error: {error_messages[0].strip()}",
                         )
                     if (
                         "File not found" in response_text
                         or "File has been deleted" in response_text
                     ):
-                        raise ExtractionFailedException(
+                        self._raise_extraction_failed(
                             "Upload.ee error: File not found or has been deleted.",
                         )
-                    raise ExtractionFailedException(
+                    self._raise_extraction_failed(
                         "Upload.ee error: Direct download link element (id='d_l' or fallback) not found.",
                     )
 
@@ -61,9 +63,13 @@ class UploadEeResolver(BaseResolver):
                 url=direct_link, filename=filename, mime_type=mime_type, size=size
             )
 
-        except Exception as e:
+        except (ExtractionFailedException, ValueError) as e:
             if isinstance(e, ExtractionFailedException):
                 raise
+            msg = f"Failed to resolve Upload.ee URL '{url}': {e!s}"
             raise ExtractionFailedException(
-                f"Failed to resolve Upload.ee URL '{url}': {e!s}",
+                msg,
             ) from e
+
+    def _raise_extraction_failed(self, msg: str) -> None:
+        raise ExtractionFailedException(msg)

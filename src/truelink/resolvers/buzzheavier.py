@@ -1,3 +1,5 @@
+"""Resolver for BuzzHeavier URLs."""
+
 from __future__ import annotations
 
 import re
@@ -12,12 +14,12 @@ from .base import BaseResolver
 
 
 class BuzzHeavierResolver(BaseResolver):
-    """Resolver for BuzzHeavier URLs"""
+    """Resolver for BuzzHeavier URLs."""
 
     DOMAINS: ClassVar[list[str]] = ["buzzheavier.com"]
 
     async def resolve(self, url: str) -> LinkResult | FolderResult:
-        """Resolve BuzzHeavier URL"""
+        """Resolve BuzzHeavier URL."""
         pattern = r"^https?://buzzheavier.com/[a-zA-Z0-9]+$"
         if not re.match(pattern, url):
             return LinkResult(url=url)
@@ -58,15 +60,19 @@ class BuzzHeavierResolver(BaseResolver):
             if folder_elements:
                 return await self._process_folder(tree, folder_elements)
 
-            raise ExtractionFailedException("No download link found")
+            self._raise_extraction_failed("No download link found")
 
-        except Exception as e:
+        except ExtractionFailedException as e:
+            msg = f"Failed to resolve BuzzHeavier URL: {e}"
             raise ExtractionFailedException(
-                f"Failed to resolve BuzzHeavier URL: {e}",
+                msg,
             ) from e
 
-    async def _get_download_url(self, url: str, is_folder: bool = False) -> str:
-        """Get download URL from BuzzHeavier"""
+    def _raise_extraction_failed(self, msg: str) -> None:
+        raise ExtractionFailedException(msg)
+
+    async def _get_download_url(self, url: str, *, is_folder: bool = False) -> str:
+        """Get download URL from BuzzHeavier."""
         if "/download" not in url:
             url += "/download"
 
@@ -81,14 +87,15 @@ class BuzzHeavierResolver(BaseResolver):
             redirect_url = response.headers.get("Hx-Redirect")
             if not redirect_url:
                 if not is_folder:
-                    raise ExtractionFailedException("Failed to get download URL")
+                    msg = "Failed to get download URL"
+                    raise ExtractionFailedException(msg)
                 return None
             return redirect_url
 
     async def _process_folder(
         self, tree: HtmlElement, folder_elements: list[HtmlElement]
     ) -> FolderResult:
-        """Process folder contents"""
+        """Process folder contents."""
         contents = []
         total_size = 0
 
@@ -98,7 +105,7 @@ class BuzzHeavierResolver(BaseResolver):
 
                 download_url = await self._get_download_url(
                     f"https://buzzheavier.com{file_id}",
-                    True,
+                    is_folder=True,
                 )
 
                 if download_url:
@@ -130,7 +137,7 @@ class BuzzHeavierResolver(BaseResolver):
                     if item_size is not None:
                         total_size += item_size
 
-            except Exception:
+            except ExtractionFailedException:
                 continue
 
         title = (

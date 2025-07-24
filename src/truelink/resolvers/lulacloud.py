@@ -1,3 +1,5 @@
+"""Resolver for LulaCloud URLs."""
+
 from __future__ import annotations
 
 from typing import ClassVar
@@ -9,12 +11,12 @@ from .base import BaseResolver
 
 
 class LulaCloudResolver(BaseResolver):
-    """Resolver for LulaCloud URLs"""
+    """Resolver for LulaCloud URLs."""
 
     DOMAINS: ClassVar[list[str]] = ["lulacloud.com"]
 
     async def resolve(self, url: str) -> LinkResult | FolderResult:
-        """Resolve LulaCloud URL"""
+        """Resolve LulaCloud URL."""
         try:
             headers = {"Referer": url}
             async with await self._post(
@@ -24,7 +26,7 @@ class LulaCloudResolver(BaseResolver):
             ) as response:
                 location = response.headers.get("location")
                 if not location:
-                    raise ExtractionFailedException("No redirect location found")
+                    self._raise_extraction_failed("No redirect location found")
 
                 filename, size, mime_type = await self._fetch_file_details(location)
 
@@ -32,7 +34,11 @@ class LulaCloudResolver(BaseResolver):
                     url=location, filename=filename, mime_type=mime_type, size=size
                 )
 
-        except Exception as e:
+        except ExtractionFailedException as e:
+            msg = f"Failed to resolve LulaCloud URL: {e}"
             raise ExtractionFailedException(
-                f"Failed to resolve LulaCloud URL: {e}",
+                msg,
             ) from e
+
+    def _raise_extraction_failed(self, msg: str) -> None:
+        raise ExtractionFailedException(msg)

@@ -1,3 +1,5 @@
+"""Resolver for MediaFile.cc URLs."""
+
 from __future__ import annotations
 
 import asyncio
@@ -11,12 +13,12 @@ from .base import BaseResolver
 
 
 class MediaFileResolver(BaseResolver):
-    """Resolver for MediaFile.cc URLs"""
+    """Resolver for MediaFile.cc URLs."""
 
     DOMAINS: ClassVar[list[str]] = ["mediafile.cc"]
 
     async def resolve(self, url: str) -> LinkResult | FolderResult:
-        """Resolve MediaFile.cc URL"""
+        """Resolve MediaFile.cc URL."""
         try:
             async with await self._get(url) as response:
                 response_text = await response.text()
@@ -28,7 +30,7 @@ class MediaFileResolver(BaseResolver):
                     response_text,
                 )
                 if not postvalue_direct:
-                    raise ExtractionFailedException(
+                    self._raise_extraction_failed(
                         "Unable to find initial download link or post value on the page.",
                     )
 
@@ -50,7 +52,7 @@ class MediaFileResolver(BaseResolver):
                     download_page_text,
                 )
                 if not postvalue:
-                    raise ExtractionFailedException(
+                    self._raise_extraction_failed(
                         "Unable to find post value on download page.",
                     )
                 postid = postvalue.group(1).replace("(", "").replace(")", "")
@@ -66,13 +68,14 @@ class MediaFileResolver(BaseResolver):
             ) as ajax_response:
                 try:
                     json_response = await ajax_response.json()
-                except Exception as json_error:
+                except ValueError as json_error:
+                    msg = f"Failed to parse JSON response from file_details: {json_error}"
                     raise ExtractionFailedException(
-                        f"Failed to parse JSON response from file_details: {json_error}",
-                    )
+                        msg,
+                    ) from json_error
 
             if "html" not in json_response:
-                raise ExtractionFailedException(
+                self._raise_extraction_failed(
                     "AJAX response does not contain 'html' key.",
                 )
 
@@ -92,7 +95,7 @@ class MediaFileResolver(BaseResolver):
                 elif potential_links:
                     direct_link = potential_links[0]
                 else:
-                    raise ExtractionFailedException(
+                    self._raise_extraction_failed(
                         "No suitable download link with 'download_token' found in AJAX response.",
                     )
             else:
@@ -106,9 +109,13 @@ class MediaFileResolver(BaseResolver):
                 url=direct_link, filename=filename, mime_type=mime_type, size=size
             )
 
-        except Exception as e:
+        except (ExtractionFailedException, ValueError) as e:
             if isinstance(e, ExtractionFailedException):
                 raise
+            msg = f"Failed to resolve MediaFile.cc URL '{url}': {e!s}"
             raise ExtractionFailedException(
-                f"Failed to resolve MediaFile.cc URL '{url}': {e!s}",
+                msg,
             ) from e
+
+    def _raise_extraction_failed(self, msg: str) -> None:
+        raise ExtractionFailedException(msg)
