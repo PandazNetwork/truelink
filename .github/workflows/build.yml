@@ -86,12 +86,7 @@ jobs:
             dist/*
           draft: false
           prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Publish to PyPI
+      - name: Upload to pypi
         if: env.RELEASE_EXISTS == 'false'
-        run: |
-          uv publish --token ${{ secrets.PYPI_API_TOKEN }}
-        env:
-          PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+        uses: pypa/gh-action-pypi-publish@release/v1
