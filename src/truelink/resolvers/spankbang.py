@@ -231,12 +231,16 @@ class SpankBangResolver(BaseResolver):
         # Extract title -> filename
         filename = self._extract_title(html)
         if not filename:
-            # Try to extract a unique identifier from the URL
+            # Try to extract a unique identifier from the URL, using domain, path, and a hash for uniqueness
             from urllib.parse import urlparse
+            import hashlib
+
             url_parts = urlparse(url)
-            # Use last path segment as identifier, fallback to 'video'
-            unique_id = url_parts.path.rstrip('/').split('/')[-1] or "video"
-            filename = f"video_{unique_id}"
+            domain = url_parts.netloc.replace('.', '_')
+            path_segments = [seg for seg in url_parts.path.rstrip('/').split('/') if seg]
+            path_part = "_".join(path_segments) if path_segments else "video"
+            url_hash = hashlib.sha256(url.encode("utf-8")).hexdigest()[:8]
+            filename = f"video_{domain}_{path_part}_{url_hash}"
 
         # Parse stream_data JSON
         data = self._extract_stream_dict(html)
