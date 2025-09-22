@@ -164,9 +164,7 @@ class SpankBangResolver(BaseResolver):
 
     @staticmethod
     def _first_str(it: Iterable[str] | None) -> str | None:
-        if not it:
-            return None
-        return next((x for x in it if isinstance(x, str) and x), None)
+        return next((x for x in it if isinstance(x, str) and x), None) if it else None
 
     def _choose_best_url(self, data: dict | None, fallback: dict[str, list[str]]) -> str | None:
         """
