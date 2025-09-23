@@ -26,6 +26,7 @@ class StreamtapeResolver(BaseResolver):
         "streamtape.net",
         "streamta.pe",
         "streamtape.xyz",
+        "strcloud.club",
         "watchadsontape.com",
     ]
 
