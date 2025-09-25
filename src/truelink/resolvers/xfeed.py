@@ -44,9 +44,9 @@ class XfeedResolver(BaseResolver):
 
         # Prefer EMBED_URL host; fallback to VIDEO_INFO.embed_url; then default
         host = None
-        m = re.search(r'window\.EMBED_URL\s*=\s*"https?://([^/]+)/', html)
+        m = re.search(r'window\.EMBED_URL\s*=\s*"([^"]+)"', html)
         if m:
-            host = m.group(1)
+            host = urlparse(m.group(1)).netloc
         elif vi.get("embed_url"):
             host = urlparse(vi["embed_url"]).netloc
         if not host:
