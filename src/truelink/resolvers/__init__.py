@@ -8,7 +8,7 @@ from .fichier import FichierResolver
 from .fuckingfast import FuckingFastResolver
 from .gofile import GoFileResolver
 from .linkbox import LinkBoxResolver
-from .linkvertise import LinkvertiseResolver  # added linkvertise
+from .linkvertise import LinkvertiseResolver
 from .lulacloud import LulaCloudResolver
 from .mediafile import MediaFileResolver
 from .mediafire import MediaFireResolver
@@ -24,6 +24,7 @@ from .uploadee import UploadEeResolver
 from .yandexdisk import YandexDiskResolver
 from .xham import XhamResolver
 from .spankbang import SpankBangResolver
+from .xfeed import XfeedResolver
 
 __all__ = [
     "BaseResolver",
@@ -48,4 +49,5 @@ __all__ = [
     "YandexDiskResolver",
     "XhamResolver",
     "SpankBangResolver",
+    "XfeedResolver",
 ]
