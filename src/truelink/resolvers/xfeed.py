@@ -1,8 +1,6 @@
-#xfeed.py
 from __future__ import annotations
 
 import re
-import json
 from typing import ClassVar
 from urllib.parse import urlparse
 
@@ -20,38 +18,32 @@ class XfeedResolver(BaseResolver):
                 raise ExtractionFailedException(f"Xfeed HTTP {r.status}")
             html = await r.text()
 
-        # Extract VIDEO_INFO block quickly
-        m = re.search(r"window\.VIDEO_INFO\s*=\s*\{(.+?)\}\s*;", html, re.S)
-        if not m:
-            raise ExtractionFailedException("Xfeed: VIDEO_INFO not found")
-        obj = "{" + m.group(1) + "}"
+        # Search for .mp4 URL pattern in the page
+        mp4_match = re.search(r'd_url:\s*["\']([^"\']*\.mp4)["\']', html)
+        if not mp4_match:
+            # Fallback: search for any .mp4 path
+            mp4_match = re.search(r'["\']([^"\']*\.mp4)["\']', html)
+        
+        if not mp4_match:
+            raise ExtractionFailedException("Xfeed: .mp4 URL not found")
+            
+        d_url = mp4_match.group(1)
+        
+        # If it's already a full URL, use it directly
+        if d_url.startswith('http'):
+            mp4_url = d_url
+        else:
+            # If it's a path, construct the full URL
+            if not d_url.startswith("/"):
+                d_url = "/" + d_url
+                
+            # Get host from EMBED_URL or use default
+            host = "vxf3d.cachefly.net"  # default
+            embed_match = re.search(r'window\.EMBED_URL\s*=\s*["\']([^"\']+)["\']', html)
+            if embed_match:
+                host = urlparse(embed_match.group(1)).netloc
+                
+            mp4_url = f"https://{host}{d_url}"
 
-        # Normalize to JSON (quote keys, replace parseInt, unify quotes)
-        obj = re.sub(r"(?<=\{|\s)([a-zA-Z_][a-zA-Z0-9_]*)\s*:", r'"\1":', obj)
-        obj = re.sub(r'parseInt\("(\d+)"\)', r"\1", obj)
-        obj = obj.replace("'", '"')
-
-        try:
-            vi = json.loads(obj)
-        except Exception:
-            raise ExtractionFailedException("Xfeed: VIDEO_INFO parse failed")
-
-        d_url = vi.get("d_url")
-        if not d_url:
-            raise ExtractionFailedException("Xfeed: d_url missing")
-        if not d_url.startswith("/"):
-            d_url = "/" + d_url
-
-        # Prefer EMBED_URL host; fallback to VIDEO_INFO.embed_url; then default
-        host = None
-        m = re.search(r'window\.EMBED_URL\s*=\s*"([^"]+)"', html)
-        if m:
-            host = urlparse(m.group(1)).netloc
-        elif vi.get("embed_url"):
-            host = urlparse(vi["embed_url"]).netloc
-        if not host:
-            host = "vxf3d.cachefly.net"
-
-        mp4 = f"https://{host}{d_url}"
-        filename, size, mime = await self._fetch_file_details(mp4)
-        return LinkResult(url=mp4, filename=filename, mime_type=mime, size=size)
+        filename, size, mime = await self._fetch_file_details(mp4_url)
+        return LinkResult(url=mp4_url, filename=filename, mime_type=mime, size=size)
